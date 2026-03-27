@@ -6,9 +6,9 @@
         --gold: #fbbf24;
         --danger: #ef4444;
         --text-muted: #94a3b8;
+        --success: #4ad66d;
     }
 
-    /* Fyller hele skjermen */
     .game-viewport {
         font-family: 'Segoe UI', system-ui, sans-serif;
         background-color: var(--bg);
@@ -44,74 +44,60 @@
     .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; display: block; }
     .stat-val { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
 
-    /* Selve mattestykket */
-    .main-content {
-        text-align: center;
-        width: 100%;
-        max-width: 800px;
-    }
-
     .question { 
-        font-size: 10rem; 
+        font-size: 8rem; 
         font-weight: 900; 
         margin: 0; 
-        line-height: 1;
-        letter-spacing: -5px;
+        line-height: 1.2;
         text-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
-    .input-wrapper { margin-top: 40px; }
-    
     .math-input {
         background: transparent;
         border: none;
         border-bottom: 4px solid #334155;
         color: var(--gold);
-        font-size: 6rem;
+        font-size: 5rem;
         width: 300px;
         text-align: center;
         outline: none;
-        transition: border-color 0.3s;
         font-weight: bold;
     }
-    .math-input:focus { border-color: var(--accent); }
 
-    /* Start og Slutt skjermer */
     .overlay-content {
         background: var(--card);
-        padding: 4rem;
-        border-radius: 3rem;
+        padding: 3rem;
+        border-radius: 2rem;
         border: 2px solid #334155;
-        box-shadow: 0 0 100px rgba(0,0,0,0.8);
-        max-width: 600px;
+        max-width: 650px;
         width: 90%;
+        text-align: center;
     }
 
     .btn {
         background: var(--accent);
         color: #0f172a;
         border: none;
-        padding: 20px 50px;
-        border-radius: 15px;
+        padding: 15px 30px;
+        border-radius: 12px;
         font-weight: 900;
         cursor: pointer;
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         text-transform: uppercase;
-        transition: transform 0.2s, background 0.2s;
-    }
-    .btn:hover { transform: scale(1.05); background: #7dd3fc; }
-
-    .analysis-list { 
-        text-align: left; 
-        background: #0f172a;
-        padding: 20px;
-        border-radius: 15px;
-        margin: 20px 0;
-        max-height: 200px;
-        overflow-y: auto;
+        margin: 10px;
     }
 
-    /* Animasjon ved feil */
+    .btn-practice { background: var(--gold); }
+
+    .step-indicator {
+        color: var(--accent);
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+        display: block;
+    }
+
     .shake { animation: shake 0.4s; }
     @keyframes shake {
         0%, 100% { transform: translateX(0); }
@@ -123,43 +109,37 @@
 <div class="game-viewport">
     
     <div id="start-screen" class="overlay-content">
-        <h1 style="font-size: 3rem; margin-top: 0; color: var(--accent);">Gange-Galskap</h1>
-        <p style="font-size: 1.2rem; color: var(--text-muted);">Svar på 10 stykker så raskt som mulig med færrest mulig tastetrykk.</p>
-        
-        <div style="margin: 40px 0;">
-            <p style="margin-bottom: 20px; font-weight: bold;">VELG UTFORDRING:</p>
-            <label style="font-size: 1.5rem; cursor:pointer;"><input type="radio" name="lvl" value="1" checked> 1-5 gangen</label>
-            <br><br>
-            <label style="font-size: 1.5rem; cursor:pointer;"><input type="radio" name="lvl" value="2"> 5-10 gangen</label>
+        <h1 style="color: var(--accent);">Gange-Galskap</h1>
+        <p>10 raske oppgaver. Bruk så få tastetrykk som mulig.</p>
+        <div style="margin: 30px 0;">
+            <label><input type="radio" name="lvl" value="1" checked> 1-5 gangen</label>
+            <label style="margin-left: 20px;"><input type="radio" name="lvl" value="2"> 5-10 gangen</label>
         </div>
-        
-        <button class="btn" onclick="startApp()">START SPILLET</button>
+        <button class="btn" onclick="startApp()">Start Spill</button>
     </div>
 
-    <div id="game-screen" class="main-content hidden">
-        <div class="top-stats">
+    <div id="game-screen" class="hidden" style="text-align:center;">
+        <div class="top-stats" id="stats-bar">
             <div class="stat-item"><span class="stat-label">Klikk</span><span class="stat-val" id="count-clicks">0</span></div>
             <div class="stat-item"><span class="stat-label">Feil</span><span class="stat-val" id="count-errors" style="color:var(--danger)">0</span></div>
             <div class="stat-item"><span class="stat-label">Tid</span><span class="stat-val" id="count-timer">0.0s</span></div>
         </div>
         
+        <span id="practice-step" class="step-indicator hidden">Steg 1: Se svaret</span>
         <div class="question" id="q-display">? × ?</div>
+        <div id="help-text" style="font-size: 2rem; color: var(--success); margin-bottom: 20px;" class="hidden">Svaret er X</div>
         
-        <div class="input-wrapper">
-            <input type="number" id="ans-input" class="math-input" placeholder="?">
-        </div>
+        <input type="number" id="ans-input" class="math-input" placeholder="?">
+        <p id="instruction" style="color: var(--text-muted); margin-top: 20px;"></p>
     </div>
 
     <div id="result-screen" class="overlay-content hidden">
-        <h2 style="font-size: 2.5rem; color: var(--gold); margin: 0;">Ferdig!</h2>
-        <div style="display: flex; justify-content: space-around; margin: 30px 0;">
-            <div><span class="stat-label">Klikk</span><span class="stat-val" id="res-clicks" style="font-size: 2rem;">0</span></div>
-            <div><span class="stat-label">Tid</span><span class="stat-val" id="res-time" style="font-size: 2rem;">0s</span></div>
-        </div>
+        <h2 id="res-title">Ferdig!</h2>
+        <p id="res-summary"></p>
+        <div id="analysis" style="text-align:left; background:#0f172a; padding:15px; border-radius:10px; margin:20px 0;"></div>
         
-        <div class="analysis-list" id="analysis"></div>
-
-        <button class="btn" onclick="location.reload()">PRØV IGJEN</button>
+        <button id="btn-practice" class="btn btn-practice hidden" onclick="startPractice()">Øv på feil (Feilfri læring)</button>
+        <button class="btn" onclick="location.reload()">Ny runde</button>
     </div>
 
 </div>
@@ -167,36 +147,38 @@
 <script>
     let level = 1, qCount = 0, clicks = 0, errors = 0;
     let currentAns = 0, currentQ = "", startTime = 0, qStartTime = 0;
-    let results = [];
+    let results = [], failedTasks = [];
+    let isPractice = false, practiceIndex = 0, practiceStep = 1;
     const maxQ = 10;
 
     const ansInp = document.getElementById('ans-input');
-    const gameScreen = document.getElementById('game-screen');
 
     function startApp() {
         level = parseInt(document.querySelector('input[name="lvl"]:checked').value);
         document.getElementById('start-screen').classList.add('hidden');
-        gameScreen.classList.remove('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        isPractice = false;
         initGame();
     }
 
     function initGame() {
+        qCount = 0; clicks = 0; errors = 0; results = [];
         startTime = Date.now();
         nextQuestion();
-        setInterval(() => {
-            if(qCount <= maxQ && startTime > 0) {
-                document.getElementById('count-timer').innerText = ((Date.now() - startTime)/1000).toFixed(1) + "s";
-            }
-        }, 100);
+        setInterval(updateTimer, 100);
+    }
+
+    function updateTimer() {
+        if(startTime > 0 && !isPractice) {
+            document.getElementById('count-timer').innerText = ((Date.now() - startTime)/1000).toFixed(1) + "s";
+        }
     }
 
     function nextQuestion() {
         if (qCount >= maxQ) return finish();
         qCount++;
-        
-        let n1 = (level === 1) ? Math.floor(Math.random() * 5) + 1 : Math.floor(Math.random() * 6) + 5;
-        let n2 = Math.floor(Math.random() * 10) + 1;
-        
+        let n1 = (level === 1) ? Math.floor(Math.random()*5)+1 : Math.floor(Math.random()*6)+5;
+        let n2 = Math.floor(Math.random()*10)+1;
         currentAns = n1 * n2;
         currentQ = `${n1} × ${n2}`;
         document.getElementById('q-display').innerText = currentQ;
@@ -206,51 +188,109 @@
     }
 
     ansInp.addEventListener('keydown', (e) => {
-        if(!["Enter", "Backspace", "Tab", "Shift"].includes(e.key)) {
+        if(!["Enter", "Backspace", "Tab"].includes(e.key) && !isPractice) {
             clicks++;
             document.getElementById('count-clicks').innerText = clicks;
+        }
+        if(e.key === "Enter" && isPractice && practiceStep === 1) {
+            goToStep2();
         }
     });
 
     ansInp.addEventListener('input', () => {
+        if(isPractice) handlePracticeInput();
+        else handleGameInput();
+    });
+
+    function handleGameInput() {
         if(ansInp.value.length >= currentAns.toString().length) {
             if(parseInt(ansInp.value) === currentAns) {
-                results.push({ q: currentQ, time: (Date.now()-qStartTime)/1000, error: false });
+                results.push({ q: currentQ, a: currentAns, error: false });
                 nextQuestion();
             } else {
                 errors++;
                 document.getElementById('count-errors').innerText = errors;
-                results.push({ q: currentQ, time: 0, error: true });
+                if(!failedTasks.some(t => t.q === currentQ)) failedTasks.push({q: currentQ, a: currentAns});
                 ansInp.value = "";
-                
-                // Rist skjermen ved feil
-                gameScreen.classList.add('shake');
-                setTimeout(() => gameScreen.classList.remove('shake'), 400);
+                document.getElementById('game-screen').classList.add('shake');
+                setTimeout(() => document.getElementById('game-screen').classList.remove('shake'), 400);
             }
         }
-    });
+    }
 
     function finish() {
-        const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
-        startTime = 0; 
-        gameScreen.classList.add('hidden');
+        startTime = 0;
+        document.getElementById('game-screen').classList.add('hidden');
         document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('res-summary').innerText = `Du brukte ${clicks} klikk på ${maxQ} oppgaver.`;
         
-        document.getElementById('res-clicks').innerText = clicks;
-        document.getElementById('res-time').innerText = totalTime + "s";
-
         const ana = document.getElementById('analysis');
-        ana.innerHTML = "<b style='color:var(--accent)'>Analyse:</b><br><br>";
+        ana.innerHTML = failedTasks.length > 0 ? "<b>Oppgaver du bør øve på:</b><br>" : "<b>Perfekt! Ingen feil.</b>";
+        failedTasks.forEach(t => ana.innerHTML += `<div>❌ ${t.q} = ${t.a}</div>`);
         
-        let hardTasks = results.filter(r => r.error || r.time > 2.5);
-        if(hardTasks.length === 0) {
-            ana.innerHTML += "🌟 Alt satt perfekt!";
+        if(failedTasks.length > 0) document.getElementById('btn-practice').classList.remove('hidden');
+    }
+
+    // FEILFRI LÆRING LOGIKK
+    function startPractice() {
+        isPractice = true;
+        practiceIndex = 0;
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        document.getElementById('stats-bar').classList.add('hidden');
+        document.getElementById('practice-step').classList.remove('hidden');
+        runPracticeStep();
+    }
+
+    function runPracticeStep() {
+        let task = failedTasks[practiceIndex];
+        currentAns = task.a;
+        document.getElementById('q-display').innerText = task.q;
+        ansInp.value = "";
+        ansInp.focus();
+
+        if(practiceStep === 1) {
+            document.getElementById('practice-step').innerText = "Steg 1: Se og lær";
+            document.getElementById('help-text').classList.remove('hidden');
+            document.getElementById('help-text').innerText = `Svaret er ${task.a}`;
+            document.getElementById('instruction').innerText = "Trykk på Enter for å gå videre";
+            ansInp.style.display = "none";
+        } else if(practiceStep === 2) {
+            document.getElementById('practice-step').innerText = "Steg 2: Avskrift";
+            document.getElementById('help-text').innerText = `Skriv: ${task.a}`;
+            ansInp.style.display = "inline-block";
+            document.getElementById('instruction').innerText = "";
         } else {
-            hardTasks.forEach(r => {
-                ana.innerHTML += `<div style="color:${r.error ? 'var(--danger)' : 'var(--gold)'}; margin-bottom:5px;">
-                    ${r.error ? '❌ Feil på' : '⏳ Litt treg på'} ${r.q} = ${eval(r.q.replace('×','*'))}
-                </div>`;
-            });
+            document.getElementById('practice-step').innerText = "Steg 3: Prøv selv";
+            document.getElementById('help-text').classList.add('hidden');
+            ansInp.style.display = "inline-block";
+        }
+    }
+
+    function goToStep2() {
+        practiceStep = 2;
+        runPracticeStep();
+    }
+
+    function handlePracticeInput() {
+        if(ansInp.value.length >= currentAns.toString().length) {
+            if(parseInt(ansInp.value) === currentAns) {
+                if(practiceStep === 2) {
+                    practiceStep = 3;
+                    setTimeout(runPracticeStep, 300);
+                } else if(practiceStep === 3) {
+                    practiceIndex++;
+                    if(practiceIndex < failedTasks.length) {
+                        practiceStep = 1;
+                        setTimeout(runPracticeStep, 300);
+                    } else {
+                        alert("Bra jobba! Du har fullført øvingsrunden.");
+                        location.reload();
+                    }
+                }
+            } else {
+                ansInp.value = ""; // I feilfri læring tvinger vi riktig svar med en gang
+            }
         }
     }
 </script>
