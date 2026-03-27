@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Gange-Galskap: Sprint Utgave</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --success: #4ad66d;
+            --gold: #fbbf24;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .game-container {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            border: 2px solid #334155;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 1rem;
+        }
+
+        .level-indicator {
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .math-area {
+            font-size: 5rem;
+            margin: 0.5rem 0;
+            font-weight: 800;
+            color: white;
+        }
+
+        input {
+            background: #0f172a;
+            border: 3px solid #334155;
+            color: var(--gold);
+            font-size: 3rem;
+            width: 180px;
+            text-align: center;
+            padding: 10px;
+            border-radius: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: #334155;
+            border-radius: 5px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s;
+        }
+
+        #result-screen {
+            display: none;
+        }
+
+        .summary-box {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 1rem;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .btn-restart {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1rem;
+        }
+
+        .feedback {
+            height: 40px;
+            margin-top: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .fast-bonus { color: var(--gold); animation: flash 0.5s infinite; }
+        @keyframes flash { 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+<div class="game-container" id="game-ui">
+    <div id="play-screen">
+        <div class="level-indicator" id="lvl-text">Nivå 1: Gange med 1-5</div>
+        <div class="stats-bar">
+            <span>Spørsmål: <span id="q-count">1</span>/10</span>
+            <span>Tid: <span id="timer">0.0</span>s</span>
+        </div>
+
+        <div class="math-area" id="que">? × ?</div>
+        <input type="number" id="ans" autofocus placeholder="?" autocomplete="off">
+        
+        <div id="feedback" class="feedback"></div>
+        
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+    </div>
+
+    <div id="result-screen">
+        <h2 style="color: var(--gold)">Runde Ferdig! 🏆</h2>
+        <div class="summary-box">
+            <p>✅ Riktige svar: <span id="res-correct" style="float:right">0/10</span></p>
+            <p>⏱️ Total tid: <span id="res-time" style="float:right">0s</span></p>
+            <p>⚡ Snitt per svar: <span id="res-avg" style="float:right">0s</span></p>
+            <p>🌟 Bonuspoeng (fart): <span id="res-bonus" style="float:right">0</span></p>
+        </div>
+        <button class="btn-restart" onclick="resetGame()">Spill Igjen</button>
+    </div>
+</div>
+
+<script>
+    let level = 1;
+    let questionIndex = 0;
+    let correctAnswers = 0;
+    let currentAns = 0;
+    let startTime, questionStartTime;
+    let totalTime = 0;
+    let speedBonus = 0;
+    const maxQuestions = 10;
+
+    const queEl = document.getElementById('que');
+    const ansInp = document.getElementById('ans');
+    const timerEl = document.getElementById('timer');
+    const feedEl = document.getElementById('feedback');
+
+    function startGame() {
+        questionIndex = 0;
+        correctAnswers = 0;
+        totalTime = 0;
+        speedBonus = 0;
+        startTime = Date.now();
+        document.getElementById('play-screen').style.display = 'block';
+        document.getElementById('result-screen').style.display = 'none';
+        nextQuestion();
+        startTimer();
+    }
+
+    function startTimer() {
+        setInterval(() => {
+            if(questionIndex < maxQuestions) {
+                let elapsed = (Date.now() - startTime) / 1000;
+                timerEl.innerText = elapsed.toFixed(1);
+            }
+        }, 100);
+    }
+
+    function nextQuestion() {
+        if (questionIndex >= maxQuestions) {
+            showResults();
+            return;
+        }
+
+        questionIndex++;
+        document.getElementById('q-count').innerText = questionIndex;
+        document.getElementById('progress-bar').style.width = (questionIndex / maxQuestions * 100) + "%";
+
+        let n1, n2;
+        if (level === 1) {
+            n1 = Math.floor(Math.random() * 5) + 1; // 1-5
+            n2 = Math.floor(Math.random() * 10) + 1;
+        } else {
+            n1 = Math.floor(Math.random() * 6) + 5; // 5-10
+            n2 = Math.floor(Math.random() * 10) + 1;
+        }
+
+        currentAns = n1 * n2;
+        queEl.innerText = `${n1} × ${n2}`;
+        ansInp.value = '';
+        ansInp.focus();
+        questionStartTime = Date.now();
+    }
+
+    ansInp.addEventListener('input', () => {
+        if (parseInt(ansInp.value) === currentAns) {
+            let timeTaken = (Date.now() - questionStartTime) / 1000;
+            correctAnswers++;
+            
+            // Belønning for rask respons (under 2 sekunder)
+            if (timeTaken < 2.0) {
+                feedEl.innerHTML = "<span class='fast-bonus'>LYNRASK! ⚡ +50 bonus</span>";
+                speedBonus += 50;
+            } else {
+                feedEl.innerText = "Riktig! ✨";
+                feedEl.style.color = "var(--success)";
+            }
+
+            setTimeout(() => {
+                feedEl.innerText = "";
+                nextQuestion();
+            }, 600);
+        }
+    });
+
+    function showResults() {
+        totalTime = (Date.now() - startTime) / 1000;
+        document.getElementById('play-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        
+        document.getElementById('res-correct').innerText = `${correctAnswers}/${maxQuestions}`;
+        document.getElementById('res-time').innerText = totalTime.toFixed(1) + "s";
+        document.getElementById('res-avg').innerText = (totalTime / maxQuestions).toFixed(2) + "s";
+        document.getElementById('res-bonus').innerText = speedBonus;
+
+        // Automatisk nivå-oppgradering
+        if (correctAnswers === 10 && totalTime < 20 && level === 1) {
+            level = 2;
+            document.getElementById('lvl-text').innerText = "Nivå 2: Gange med 5-10";
+            alert("RÅTT! Du er klar for Nivå 2!");
+        }
+    }
+
+    function resetGame() {
+        startGame();
+    }
+
+    // Start spillet første gang
+    startGame();
+</script>
+
+</body>
+</html>
